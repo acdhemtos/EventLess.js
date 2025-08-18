@@ -1,47 +1,55 @@
-if(!window.eventLess){	// Necessary to prevent issues with React Hot-Reload
-	window.eventLess = {
-		active : false,
-		functions : [],
-		interval : 100,
-		
-		add(fn) {
-			if (typeof fn === "function") {
-				this.functions.push(fn);
-			} else {
-				console.warn("Only functions can be added to eventLess queue.");
+if(!window.EventLess){	// Handle React Hot-Reload
+	
+	window.EventLess = {};
+	
+	const unlocks = {
+		audio: async function(){
+			const ctx = new (window.AudioContext || window.webkitAudioContext)();
+			if(ctx.state === "suspended"){
+				await ctx.resume();
 			}
 		},
-
-		remove(fn) {
-			this.functions = this.functions.filter(f => f !== fn);
+		fullscreen: async function(){
+			await document.documentElement.requestFullscreen();
+			document.exitFullscreen();
+		},
+		clipboard: async function(){
+			await navigator.clipboard.writeText(await navigator.clipboard.readText());
+		},
+		pointerlock: async function unlockPointer() {
+			await new Promise(resolve => {
+				document.addEventListener(
+					"pointerlockchange",
+					function () {
+						document.exitPointerLock();
+						resolve();
+					},
+					{ once: true }
+				);
+				document.body.requestPointerLock();
+			});
+		},
+		speech: async function(){
+			return new Promise(resolve => {
+				const utter = new SpeechSynthesisUtterance(" ");
+				utter.onend = resolve;
+				speechSynthesis.speak(utter);
+			});
 		}
 	};
-
-	const acceptedStartEvents = ["click", "mousedown", "keydown", "touchstart"];
-
 	
-
-	function eventListener(){
-		if(window.eventLess.active === false){  
-			window.eventLess.active = true
-			
-			setInterval(() => {
-				while (window.eventLess.functions.length > 0) {
-					try {
-						window.eventLess.functions.shift()();
-					} catch (err) {
-						console.error(err);
-					}
+	for(const e of ["click", "mousedown", "keydown", "touchstart"]){
+		document.addEventListener(e, function(){
+			for(const permission of Object.keys(unlocks)){
+				if(EventLess[permission] !== true){
+					unlocks[permission]()
+					.then(() => { 
+						window.EventLess[permission] = true;
+						delete unlocks[permission];
+					})
+					.catch(() => { window.EventLess[permission] = false; })
 				}
-			}, window.eventLess.interval);
-		}
-		for(const e of acceptedStartEvents){
-			document.removeEventListener(e, eventListener);
-		}
-	}
-
-	for(const e of acceptedStartEvents){
-		document.addEventListener(e, eventListener);
+			}
+		}, { once: true });
 	}
 }
-
