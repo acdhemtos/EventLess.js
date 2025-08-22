@@ -1,102 +1,108 @@
 # EventLess.js
 
-**EventLess.js** is a lightweight library to unlock browser permissions (audio, camera, clipboard, notifications, etc.) on the next user gesture, without requiring direct interaction at the time of request. It ensures compliance with browser security policies while simplifying permission handling.
+EventLess.js is a lightweight JavaScript library for unlocking browser APIs that require user interaction or permissions, such as Audio, Camera, Microphone, Clipboard, Fullscreen, and more. It simplifies permission handling and user gesture requirements by listening to common events like `click`, `keydown`, `mousedown` or `touchstart`.
 
 ---
 
 ## Features
 
-- Unlocks permissions like:
-  - Audio (`AudioContext`)
-  - Camera & Microphone (`getUserMedia`)
-  - Clipboard
-  - Fullscreen
-  - MIDI
-  - Notifications
-  - Pointer Lock
-  - Speech Synthesis
-  - Vibration
-  - Geolocation
-- Works with any user gesture (`click`, `mousedown`, `keydown`, `touchstart`)
-- Cleans up event listeners automatically
-- Provides a read-only proxy for checking permission status
+* Unlock browser APIs that normally require user interaction.
+* Supports Audio, Camera, Microphone, Clipboard, Fullscreen, Pointer Lock, Notifications, Vibration, Geolocation, Speech, and MIDI.
+* Add custom unlocks and custom events.
+* Automatically manages event listeners and cleanup.
+* Simple API with optional callback on unlock.
 
 ---
 
 ## Installation
 
-Include via `<script>` tag:
+Include the script in your project:
 
 ```html
-<script src="path/to/EventLess.js"></script>
+<script src="path/to/eventless.js"></script>
 ```
 
-Or import as a module:
+Or use ES Modules:
 
 ```js
-import EventLess from './EventLess.js';
+import EventLess from './eventless.js';
 ```
 
 ---
 
 ## Usage
 
-### Unlock Permissions
+### Unlocking Permissions
 
 ```js
-// Unlock audio and clipboard on the next user gesture
-EventLess.unlock("audio", "clipboard");
-```
+// Unlock Audio
+EventLess.unlock('audio', () => {
+  console.log('Audio unlocked!');
+});
 
-The first user interaction will trigger the requested permissions and mark them as unlocked.
+// Unlock Microphone
+EventLess.unlock('microphone', () => {
+  console.log('Microphone unlocked!');
+});
 
-### Check Permission Status
-
-```js
-if (EventLess.permission.audio) {
-    console.log("Audio is unlocked!");
-} else {
-    console.log("Audio is not unlocked yet.");
-}
-```
-
-> Note: `EventLess.permission` is read-only. To unlock, always use `EventLess.unlock()`.
-
-### Supported Permissions
-
-| Permission     | Description |
-|----------------|-------------|
-| `audio`        | Unlocks `AudioContext` for playback |
-| `camera`       | Access camera stream temporarily |
-| `microphone`   | Access microphone stream temporarily |
-| `clipboard`    | Reads and writes to the clipboard |
-| `fullscreen`   | Requests and exits fullscreen |
-| `midi`         | Access to MIDI devices |
-| `notifications`| Requests notification permission |
-| `pointerlock`  | Locks pointer briefly |
-| `speech`       | Requests speech synthesis permission |
-| `vibration`    | Vibrates the device once |
-| `geolocation`  | Requests current location |
-
-### Example
-
-```js
-// Unlock multiple permissions
-EventLess.unlock("audio", "microphone", "notifications");
-
-document.addEventListener('click', () => {
-    console.log("Audio unlocked:", EventLess.permission.audio);
-    console.log("Microphone unlocked:", EventLess.permission.microphone);
+// Unlock Clipboard
+EventLess.unlock('clipboard', () => {
+  console.log('Clipboard unlocked!');
 });
 ```
 
-### Notes
+### Adding Custom Unlocks
 
-- EventLess works **only on the next user gesture**. Browsers enforce this restriction to prevent silent permission abuse.
-- Once unlocked, permissions are cached in `EventLess.permission`.
-- Event listeners are automatically removed after triggering, ensuring no memory leaks.
+```js
+EventLess.addUnlock('vibratePattern', async () => {
+  await navigator.vibrate([200, 100, 200]);
+});
+
+EventLess.unlock('vibratePattern', () => {
+  console.log('Custom vibration pattern unlocked!');
+});
+```
+
+### Adding/Removing Events
+
+```js
+// Add a new event
+EventLess.addEvent('dblclick');
+
+// Remove an event
+EventLess.removeEvent('mousedown');
+```
+
+### Checking Unlocked Permissions
+
+```js
+console.log(EventLess.permissions); // Returns array of unlocked permissions
+```
+
+### Removing Unlocks
+
+```js
+EventLess.removeUnlock('audio');
+```
 
 ---
+
+## Predefined Unlocks
+
+* `audio`
+* `camera`
+* `microphone`
+* `clipboard`
+* `fullscreen`
+* `pointerlock`
+* `notifications`
+* `vibration`
+* `geolocation`
+* `speech`
+* `midi`
+
+---
+
 
 ## License
 

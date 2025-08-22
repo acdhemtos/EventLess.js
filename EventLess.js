@@ -65,35 +65,34 @@ const eventsCount = {};
 
 class EventLess {
 	
-	static unlock(...requested){
-		for(const permission of requested){
-			if(!(permission in unlocks)){
-				throw new Error(`EventLess.js : Unlock "${permission}" does not exist.`);
-			}else{
-				if(!permissions.has(permission)){
-					if(!(permission in controllers)){
-						controllers[permission] = new AbortController();
-						eventsCount[permission] = 0;
-					}
-					for(const e of events){
-						const perm = permission;
-						document.addEventListener(e, async function(){
-							try{
-								await unlocks[perm]();
-								permissions.add(perm);
-								controllers[perm].abort();
-							}catch{
-								--eventsCount[perm];
-							}
-								
-							if(controllers[perm].signal.aborted || eventsCount[perm] <= 0){
-								delete controllers[perm];
-								delete eventsCount[perm];
-							}
-						}, { once : true, signal : controllers[permission].signal });
-					}
-					eventsCount[permission] += events.size;
+	static unlock(permission, onUnlock = function(){}){
+		if(!(permission in unlocks)){
+			throw new Error(`EventLess.js : Unlock "${permission}" does not exist.`);
+		}else{
+			if(!permissions.has(permission)){
+				if(!(permission in controllers)){
+					controllers[permission] = new AbortController();
+					eventsCount[permission] = 0;
 				}
+				for(const e of events){
+					const perm = permission;
+					document.addEventListener(e, async function(){
+						try{
+							await unlocks[perm]();
+							permissions.add(perm);
+							controllers[perm].abort();
+							onUnlock();
+						}catch{
+							--eventsCount[perm];
+						}
+							
+						if(controllers[perm].signal.aborted || eventsCount[perm] <= 0){
+							delete controllers[perm];
+							delete eventsCount[perm];
+						}
+					}, { once : true, signal : controllers[permission].signal });
+				}
+				eventsCount[permission] += events.size;
 			}
 		}
 	}
