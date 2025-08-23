@@ -1,3 +1,5 @@
+// https://github.com/acdhemtos/EventLess.js/EventLess.js
+
 const unlocks = {
 	audio: async () => {
 		const ctx = new (window.AudioContext || window.webkitAudioContext)();
