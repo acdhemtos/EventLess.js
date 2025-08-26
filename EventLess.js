@@ -1,4 +1,5 @@
-// https://github.com/acdhemtos/EventLess.js/EventLess.js
+// https://github.com/acdhemtos/EventLess.js/
+//                                           EventLess.js
 
 const unlocks = {
 	audio: async () => {
